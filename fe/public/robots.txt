@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+Disallow: /auth/
+Disallow: /profile/
+Disallow: /dashboard/
+Disallow: /login/
+Disallow: /signup/
+Disallow: /forgot-password/
+
+# Allow search engines to access static assets
+Allow: /static/
+Allow: /*.js
+Allow: /*.css
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.gif
+Allow: /*.svg
+Allow: /*.ico
+
+# Sitemap location
+Sitemap: https://sunnah.com/sitemap.xml
