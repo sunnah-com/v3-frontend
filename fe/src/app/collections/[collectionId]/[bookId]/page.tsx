@@ -15,6 +15,7 @@ import {
 } from "fe/types";
 import { SearchBar } from "fe/components/search-bar";
 import { HadithCard } from "fe/components/hadith-card";
+import { CategoryTabs } from "fe/components/category-tabs";
 import { StructuredData } from "fe/components/structured-data";
 import { generateBookStructuredData, generateBreadcrumbStructuredData } from "fe/lib/seo-utils";
 
@@ -169,6 +170,7 @@ export default async function BookPage(props: BookPageProps) {
     <div className="container mx-auto px-4 py-8">
       {/* JSON-LD structured data */}
       <StructuredData data={generateBookStructuredData(collection, book, chapters)} />
+      <CategoryTabs active="hadiths" collectionId={collection.id} bookId={book.id} />
       
       {/* Breadcrumb structured data */}
       <StructuredData 
