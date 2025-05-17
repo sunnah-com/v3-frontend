@@ -4,6 +4,7 @@ import { CollectionWithoutBooks } from "fe/proto/business_models"; // Import the
 import { Collection } from "fe/types"; // Import the frontend type
 import { CollectionCard } from "fe/components/collection-card";
 import { SearchBar } from "fe/components/search-bar";
+import { CategoryTabs } from "fe/components/category-tabs";
 import { StructuredData } from "fe/components/structured-data";
 import { generateCollectionsStructuredData } from "fe/lib/seo-utils";
 
@@ -59,6 +60,7 @@ export default async function CollectionsPage() {
     <div className="container mx-auto px-4 py-8">
       {/* JSON-LD structured data */}
       <StructuredData data={generateCollectionsStructuredData(collections)} />
+      <CategoryTabs active="collections" />
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold mb-4">Hadith Collections</h1>
         <p className="text-muted-foreground mb-6">

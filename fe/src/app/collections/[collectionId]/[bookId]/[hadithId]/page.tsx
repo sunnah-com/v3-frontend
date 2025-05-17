@@ -13,6 +13,7 @@ import {
   apiDetailedHadithToHadith,
 } from "fe/types";
 import { HadithCard } from "fe/components/hadith-card";
+import { CategoryTabs } from "fe/components/category-tabs";
 import { StructuredData } from "fe/components/structured-data";
 import { generateHadithStructuredData, generateBreadcrumbStructuredData } from "fe/lib/seo-utils";
 
@@ -159,7 +160,8 @@ const HadithPage = async (props: HadithPageProps) => {
     <div className="container mx-auto px-4 py-8">
       {/* JSON-LD structured data */}
       <StructuredData data={generateHadithStructuredData(collection, book, hadith)} />
-      
+      <CategoryTabs active="hadiths" collectionId={collection.id} bookId={book.id} />
+
       {/* Breadcrumb structured data */}
       <StructuredData 
         data={generateBreadcrumbStructuredData([
