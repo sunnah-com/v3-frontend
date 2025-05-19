@@ -14,6 +14,8 @@ import { SearchBar } from "fe/components/search-bar"
 import { StructuredData } from "fe/components/structured-data"
 import { generateCollectionStructuredData, generateBreadcrumbStructuredData } from "fe/lib/seo-utils"
 
+export const dynamic = 'force-dynamic';
+
 interface CollectionPageProps {
   params: Promise<{
     collectionId: string

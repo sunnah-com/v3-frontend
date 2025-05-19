@@ -52,6 +52,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/.env.production ./
+COPY --from=builder /app/scripts-dist ./scripts-dist
 
 # Set proper ownership
 RUN chown -R nextjs:nodejs /app
@@ -63,4 +64,4 @@ USER nextjs
 EXPOSE 3000
 
 # Set the command to run the application
-CMD ["node", "server.js"]
+CMD ["sh", "-c", "node scripts-dist/preload-static-data.js && node server.js"]

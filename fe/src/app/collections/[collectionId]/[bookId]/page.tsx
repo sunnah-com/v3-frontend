@@ -18,6 +18,8 @@ import { HadithCard } from "fe/components/hadith-card";
 import { StructuredData } from "fe/components/structured-data";
 import { generateBookStructuredData, generateBreadcrumbStructuredData } from "fe/lib/seo-utils";
 
+export const dynamic = 'force-dynamic';
+
 interface BookPageProps {
   params: Promise<{
     collectionId: string;

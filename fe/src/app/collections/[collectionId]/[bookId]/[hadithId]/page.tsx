@@ -16,6 +16,8 @@ import { HadithCard } from "fe/components/hadith-card";
 import { StructuredData } from "fe/components/structured-data";
 import { generateHadithStructuredData, generateBreadcrumbStructuredData } from "fe/lib/seo-utils";
 
+export const dynamic = 'force-dynamic';
+
 interface HadithParams {
   collectionId: string;
   bookId: string;

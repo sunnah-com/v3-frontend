@@ -69,7 +69,7 @@ export const metadata: Metadata = {
 };
 
 // Set revalidation time for the data fetched in this layout
-export const revalidate = 3600; // 1 hour
+export const dynamic = 'force-dynamic';
 
 // Helper function to map API CollectionWithoutBooks to frontend Collection type
 // (Same function as used in collections/page.tsx)
