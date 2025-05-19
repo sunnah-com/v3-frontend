@@ -9,8 +9,7 @@ import { Logo } from "fe/components/logo";
 import { StructuredData } from "fe/components/structured-data";
 import { generateWebsiteStructuredData } from "fe/lib/seo-utils";
 
-// Add revalidate option for the page itself
-export const revalidate = 3600; // 1 hour
+export const dynamic = 'force-dynamic';
 
 // Define metadata for the home page
 export const metadata = {

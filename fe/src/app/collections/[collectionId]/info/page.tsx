@@ -4,6 +4,8 @@ import { businessApi } from "fe/lib/api-client"
 import { Language } from "fe/proto/api"
 import { Collection, apiDetailedCollectionToCollection } from "fe/types"
 
+export const dynamic = 'force-dynamic';
+
 interface CollectionInfoPageProps {
   params: Promise<{
     collectionId: string

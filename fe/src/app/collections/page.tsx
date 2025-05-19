@@ -24,6 +24,8 @@ export const metadata = {
   },
 };
 
+export const dynamic = 'force-dynamic';
+
 // Helper function to map API CollectionWithoutBooks to frontend Collection type
 function mapCollectionWithoutBooksToCollection(apiCollection: CollectionWithoutBooks): Collection {
   return {
