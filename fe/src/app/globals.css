@@ -110,6 +110,10 @@
 
   /* Border radius */
   --radius: 0.5rem;
+  
+  /* Sidebar specific */
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
 
   /* Sidebar colors */
   --sidebar: #ffffff;
@@ -206,5 +210,40 @@
   div[data-id] {
     scroll-margin-top: 120px; /* Increased value to ensure content isn't hidden behind header */
     scroll-padding-top: 120px; /* Add scroll-padding as a fallback */
+  }
+  
+  /* Sidebar enhancements */
+  [data-sidebar="trigger"] {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  
+  [data-sidebar="trigger"]:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Ensure smooth scrolling in sidebar content */
+  [data-sidebar="sidebar"] {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sidebar-border) transparent;
+  }
+  
+  [data-sidebar="sidebar"]::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  [data-sidebar="sidebar"]::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  [data-sidebar="sidebar"]::-webkit-scrollbar-thumb {
+    background-color: var(--sidebar-border);
+    border-radius: 3px;
+  }
+  
+  /* Mobile sidebar sheet animation */
+  @media (max-width: 768px) {
+    [data-sidebar="sidebar"] {
+      transition: transform 0.3s ease-in-out;
+    }
   }
 }

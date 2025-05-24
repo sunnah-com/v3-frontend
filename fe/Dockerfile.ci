@@ -1,0 +1,62 @@
+# Build stage - optimized for CI without backend dependency
+FROM node:23.11-alpine3.20 AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Accept build arguments
+ARG NODE_ENV=production
+ARG SKIP_BUILD_STATIC_GENERATION=true
+ARG NEXT_PUBLIC_API_URL=https://api.sunnah.dev
+
+# Set environment variables for build time
+ENV NODE_ENV=${NODE_ENV}
+ENV SKIP_BUILD_STATIC_GENERATION=${SKIP_BUILD_STATIC_GENERATION}
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+# Set a dummy INTERNAL_API_URL to prevent build errors
+ENV INTERNAL_API_URL=http://localhost:8080
+
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy the rest of the application
+COPY . .
+
+# Build the application without static generation
+RUN npm run build
+
+# Production stage
+FROM node:23.11-alpine3.20 AS runner
+
+# Set working directory
+WORKDIR /app
+
+# Set runtime environment variables for the final container
+ENV NODE_ENV=production
+ENV NEXT_PUBLIC_API_URL=https://api.sunnah.dev
+ENV INTERNAL_API_URL=http://sunnahcomnew-be:8080
+
+# Create a non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy necessary files from builder stage
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/.env.production ./
+
+# Set proper ownership
+RUN chown -R nextjs:nodejs /app
+
+# Switch to non-root user
+USER nextjs
+
+# Expose the application port
+EXPOSE 3000
+
+# Set the command to run the application
+CMD ["node", "server.js"]

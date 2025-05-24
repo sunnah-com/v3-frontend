@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "prebuild": "node scripts/prebuild-cache.js",
     "build": "next build",
+    "build:ci": "USE_DEFAULT_CACHE=true npm run prebuild && SKIP_BUILD_STATIC_GENERATION=true next build",
     "start": "next start",
     "lint": "next lint"
   },

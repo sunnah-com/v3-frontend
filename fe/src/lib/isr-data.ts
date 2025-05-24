@@ -18,8 +18,16 @@ const REVALIDATE_TIME = 3600;
  */
 export const getLanguagesWithISR = unstable_cache(
   async (): Promise<GetAllLanguagesResponse> => {
-    console.log("Fetching languages via ISR cache wrapper..."); // Add logging for debugging
-    return await businessApi.getAllLanguages();
+    try {
+      console.log("Fetching languages via ISR cache wrapper..."); // Add logging for debugging
+      return await businessApi.getAllLanguages();
+    } catch (error) {
+      console.warn('ISR: Failed to fetch languages during build, returning empty response', error);
+      // Return empty but valid response structure during build time
+      return {
+        languages: []
+      } as GetAllLanguagesResponse;
+    }
   },
   ['languages'], // Cache key parts: Ensures this specific function call is cached uniquely
   {
@@ -35,10 +43,18 @@ export const getLanguagesWithISR = unstable_cache(
  */
 export const getCollectionsWithISR = unstable_cache(
   async (language: Language): Promise<GetAllCollectionsResponse> => {
-    console.log(`Fetching collections for language ${language} via ISR cache wrapper...`); // Add logging
-    // The 'language' parameter automatically becomes part of the cache key,
-    // ensuring different languages have separate cache entries.
-    return await businessApi.getAllCollections(language);
+    try {
+      console.log(`Fetching collections for language ${language} via ISR cache wrapper...`); // Add logging
+      // The 'language' parameter automatically becomes part of the cache key,
+      // ensuring different languages have separate cache entries.
+      return await businessApi.getAllCollections(language);
+    } catch (error) {
+      console.warn(`ISR: Failed to fetch collections for language ${language} during build, returning empty response`, error);
+      // Return empty but valid response structure during build time
+      return {
+        collections: []
+      } as GetAllCollectionsResponse;
+    }
   },
   ['collections'], // Base cache key part
   {
@@ -55,8 +71,16 @@ export const getCollectionsWithISR = unstable_cache(
  */
 export const getReferenceTypesWithISR = unstable_cache(
   async (): Promise<GetAllReferenceTypesResponse> => {
-    console.log("Fetching reference types via ISR cache wrapper..."); // Add logging
-    return await businessApi.getAllReferenceTypes();
+    try {
+      console.log("Fetching reference types via ISR cache wrapper..."); // Add logging
+      return await businessApi.getAllReferenceTypes();
+    } catch (error) {
+      console.warn('ISR: Failed to fetch reference types during build, returning empty response', error);
+      // Return empty but valid response structure during build time
+      return {
+        referenceTypes: []
+      } as GetAllReferenceTypesResponse;
+    }
   },
   ['referenceTypes'], // Cache key parts
   {
