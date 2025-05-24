@@ -9,9 +9,9 @@ The Next.js frontend uses Incremental Static Regeneration (ISR) and makes API ca
 
 ## Solutions
 
-### Solution 1: Safe ISR with Fallbacks (Recommended)
+### Solution 1: Safe ISR with Fallbacks (Implemented ✓)
 
-**Implementation**: Replace `isr-data.ts` with `isr-data-safe.ts`
+**Implementation**: The `isr-data.ts` file now includes try-catch blocks that return empty data when the backend is unavailable during build.
 
 This solution wraps all API calls with error handling that returns empty/default data when the backend is unavailable during build.
 
@@ -25,13 +25,26 @@ This solution wraps all API calls with error handling that returns empty/default
 - Initial page loads might be slower (no pre-cached data)
 - SEO impact for initial crawl
 
+**Current Implementation**:
+```typescript
+// In src/lib/isr-data.ts
+export const getCollectionsWithISR = unstable_cache(
+  async (language: Language): Promise<GetAllCollectionsResponse> => {
+    try {
+      return await businessApi.getAllCollections(language);
+    } catch (error) {
+      console.warn(`ISR: Failed to fetch collections, returning empty response`, error);
+      return { collections: [] } as GetAllCollectionsResponse;
+    }
+  },
+  ['collections'],
+  { revalidate: REVALIDATE_TIME, tags: ['collections'] }
+);
+```
+
 **Usage**:
 ```bash
-# In layout.tsx and other files, change import:
-# from: import { getLanguagesWithISR } from "../lib/isr-data"
-# to:   import { getLanguagesWithISR } from "../lib/isr-data-safe"
-
-# Build normally in CI
+# Build normally in CI - no changes needed
 docker build -f Dockerfile -t frontend:latest .
 ```
 
@@ -127,20 +140,19 @@ Ensure these are set correctly:
 - `NEXT_PUBLIC_API_URL`: Public API URL
 - `INTERNAL_API_URL`: Internal service URL (e.g., http://backend:8080)
 
-## Quick Implementation
+## Current Status
 
-To immediately fix CI builds, update these files:
+✅ **Solution 1 has been implemented** directly in the main `isr-data.ts` file. All ISR functions now include error handling that returns empty data when the backend is unavailable.
 
-1. `src/app/layout.tsx` - Change line 11:
-   ```typescript
-   import { getLanguagesWithISR, getCollectionsWithISR, getReferenceTypesWithISR } from "../lib/isr-data-safe";
-   ```
+The CI/CD pipeline can now build the frontend without requiring backend connectivity. No additional changes are needed.
 
-2. `src/app/page.tsx` - Change line 6:
-   ```typescript
-   import { getCollectionsWithISR } from "fe/lib/isr-data-safe";
-   ```
+## Additional Updates
 
-3. Any other files importing from `isr-data.ts` should import from `isr-data-safe.ts` instead.
+### Sidebar Navigation
+A new sidebar navigation system has been implemented for the collections pages:
+- **Component**: `src/components/hadith-sidebar.tsx`
+- **Layout**: `src/app/collections/layout.tsx`
+- Features sticky trigger button, responsive design, and collection navigation
 
-Then build normally without requiring backend availability.
+### Import Path Fixes
+All `@/` import aliases have been updated to use `fe/` prefix to match the project's TypeScript configuration.

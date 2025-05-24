@@ -9,11 +9,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev          # Start development server with Turbopack
 
 # Production
-npm run build        # Build for production
+npm run build        # Build for production (works without backend connectivity)
 npm run start        # Start production server
 
 # Code Quality
 npm run lint         # Run ESLint
+npm run typecheck    # Run TypeScript type checking (if available)
 ```
 
 ## Architecture Overview
@@ -33,6 +34,8 @@ This is a Next.js 15 application using the App Router with React 19. The project
 2. **Proto Types**: `src/proto/` contains generated TypeScript types from protobuf definitions
 3. **Services**: `src/services/` implements business logic using proto types
 4. **ISR Data**: `src/lib/isr-data.ts` handles static data fetching with 1-hour revalidation
+   - ISR functions include build-time fallbacks that return empty data when API is unavailable
+   - This allows builds to succeed in CI/CD environments without backend connectivity
 5. **Components**: Server components fetch data directly, client components use contexts/hooks
 
 ### Provider Hierarchy
@@ -54,3 +57,11 @@ The app wraps components in this order:
 - Client components should use the `"use client"` directive
 - ISR revalidation time is set to 3600 seconds (1 hour)
 - All API responses follow protobuf-defined structures
+
+### UI Components
+- **Sidebar Navigation**: Collections pages use `HadithSidebar` component with sticky trigger
+  - Desktop: Collapsible sidebar with icon-only mode
+  - Mobile: Slide-out drawer pattern
+  - Located in `src/components/hadith-sidebar.tsx`
+- **UI Library**: Full shadcn/ui component library in `src/components/ui/`
+- **Import Pattern**: Use `fe/` prefix for imports (e.g., `import { Button } from "fe/components/ui/button"`)
