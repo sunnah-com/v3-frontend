@@ -11,6 +11,7 @@ import {
   apiSimpleBookToBook,
 } from 'fe/types';
 import { SearchBar } from "fe/components/search-bar"
+import { CategoryTabs } from "fe/components/category-tabs"
 import { StructuredData } from "fe/components/structured-data"
 import { generateCollectionStructuredData, generateBreadcrumbStructuredData } from "fe/lib/seo-utils"
 
@@ -108,7 +109,8 @@ export default async function CollectionPage(props: CollectionPageProps) {
     <div className="container mx-auto px-4 py-8">
       {/* JSON-LD structured data */}
       <StructuredData data={generateCollectionStructuredData(collection, books)} />
-      
+      <CategoryTabs active="books" collectionId={collection.id} />
+
       {/* Breadcrumb structured data */}
       <StructuredData 
         data={generateBreadcrumbStructuredData([
