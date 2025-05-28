@@ -1,0 +1,249 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Base colors */
+  --background: #fffaf5; /* slightly lightened from #fff8f2 */
+  --foreground: #2d2d2d;
+
+  --card: #ffffff;
+  --card-foreground: #2d2d2d;
+
+  --popover: #ffffff;
+  --popover-foreground: #2d2d2d;
+
+  /* Primary / accent colors */
+  --primary: #60aeae; /* slightly lightened from #50a3a3 */
+  --primary-foreground: #ffffff;
+
+  --secondary: #dddddd; /* was #cccccc */
+  --secondary-foreground: #777777; /* was #666666 */
+
+  --muted: #f2f2f2; /* was #ededed */
+  --muted-foreground: #555555; /* was #444444 */
+
+  --accent: #4ba29c; /* was #3d938c */
+  --accent-foreground: #ffffff;
+
+  --destructive: #dc2626;           /* warm, saturated red */
+  --destructive-foreground: #ffffff; /* white text: contrast ≈7.1:1 */
+
+  --border: #dddddd; /* was #cccccc */
+  --input: #ffffff;
+  --ring: #60aeae; /* was #50a3a3 */
+
+  /* Chart placeholders (lighten or keep as is) */
+  --chart-1: #60aeae; /* was #50a3a3 */
+  --chart-2: #90c0c0; /* was #84b8b8 */
+  --chart-3: #aaaaaa; /* was #999999 */
+  --chart-4: #dddddd; /* was #cccccc */
+  --chart-5: #777777; /* was #666666 */
+
+  /* Border radius */
+  --radius: 0.5rem;
+
+  /* Sidebar colors */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #2d2d2d;
+  --sidebar-primary: #60aeae; /* was #50a3a3 */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f2f2f2; /* was #ededed */
+  --sidebar-accent-foreground: #555555; /* was #444444 */
+  --sidebar-border: #dddddd; /* was #cccccc */
+  --sidebar-ring: #60aeae; /* was #50a3a3 */
+}
+
+.dark {
+  /* Base colors */
+  --background: #1f2125; /* old --site-bg */
+  --foreground: #ffffff; /* old --primary-text-color (general text) */
+
+  /* Card colors */
+  --card: #272f33; /* old secondry_block_bg, sidePanel_bg, etc. */
+  --card-foreground: #ffffff;
+
+  /* Popover colors */
+  --popover: #272f33;
+  --popover-foreground: #ffffff;
+
+  /* Primary colors */
+  --primary: #50a3a3; /* old --link-color (teal) */
+  --primary-foreground: #ffffff;
+
+  /* Secondary colors */
+  --secondary: #343a40; /* old --header-bg or boh_hover_bg */
+  --secondary-foreground: #ffffff;
+
+  /* Muted colors (used for gray text) */
+  --muted: #5e5e5e91; /* old --sanad_text_color */
+  --muted-foreground: #b3b6bc; /* lighter gray for better contrast on dark backgrounds */
+
+  /* Accent colors (for highlights, etc.) */
+  --accent: #3d938c; /* old --highlight-color */
+  --accent-foreground: #ffffff;
+
+  /* Destructive colors (used for disabled, etc.) */
+  --destructive: #b91c1c;           /* slightly deeper red for dark bg */
+  --destructive-foreground: #ffffff; /* white text: contrast ≈8.5:1 */
+
+  /* Border, input, ring colors */
+  --border: #2b2b2d; /* old search shadow color or something close */
+  --input: #272f33; /* matches sidePanel_bg / search fields */
+  --ring: #50a3a3; /* keep teal focus ring in dark mode */
+
+  /* Chart colors - dark theme */
+  --chart-1: #50a3a3;
+  --chart-2: #3d938c;
+  --chart-3: #90b8b9; /* old --sticky-color if desired */
+  --chart-4: #6c757d; /* or #343A40, etc. */
+  --chart-5: #b3b6bc;
+
+  /* Sidebar in dark mode */
+  --sidebar: #272f33;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #50a3a3;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #343a40;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #2b2b2d;
+  --sidebar-ring: #50a3a3;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Arabic text styling */
+  .arabic {
+    @apply font-arabic text-right;
+    direction: rtl;
+  }
+
+  /* Special character styling for PBUH symbol */
+  .pbuh-symbol {
+    font-family: "Scheherazade New", serif;
+    display: inline-block;
+  }
+  
+  /* Fix for anchor links being hidden behind sticky header */
+  :target,
+  [id],
+  h1, h2, h3, h4, h5, h6,
+  section, article, div[id],
+  div[data-id] {
+    scroll-margin-top: 120px; /* Increased value to ensure content isn't hidden behind header */
+    scroll-padding-top: 120px; /* Add scroll-padding as a fallback */
+  }
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+@layer utilities {
+  .animate-accordion-down {
+    animation: accordion-down 0.2s ease-out;
+  }
+  .animate-accordion-up {
+    animation: accordion-up 0.2s ease-out;
+  }
+  
+  /* CSS-only scroll-driven header slide-up animation */
+  .navbar-with-scroll-hide {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    transform: translateY(0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+  
+  /* Compensate for header movement to prevent content jumping */
+  .scroll-compensated-content {
+    margin-top: 0;
+    transition: margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Modern scroll-driven animations */
+  @supports (animation-timeline: scroll()) {
+    .navbar-with-scroll-hide {
+      animation: slide-header-up linear;
+      animation-timeline: scroll(root);
+      animation-range: 0px 100px;
+      animation-fill-mode: both;
+    }
+    
+    .scroll-compensated-content {
+      animation: compensate-content-margin linear;
+      animation-timeline: scroll(root);
+      animation-range: 0px 100px;
+      animation-fill-mode: both;
+    }
+  }
+  
+  /* Fallback using CSS custom properties and scroll behavior */
+  @supports not (animation-timeline: scroll()) {
+    /* Use intersection with viewport for scroll detection */
+    .navbar-with-scroll-hide {
+      transform: translateY(0);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .scroll-compensated-content {
+      margin-top: 0;
+      transition: margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Simulate scroll state using CSS calc and viewport units */
+    body:not(.scroll-top) .navbar-with-scroll-hide {
+      transform: translateY(-2rem); /* -32px to move up by subheader height */
+    }
+    
+    body:not(.scroll-top) .scroll-compensated-content {
+      margin-top: 2rem; /* +32px to compensate for header movement */
+    }
+  }
+  
+  /* Remove the individual subheader animation classes since we're moving the whole header */
+  .subheader-scroll-hide {
+    /* No special styling needed - just part of the header now */
+  }
+}
+
+@keyframes slide-header-up {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-2rem); /* -32px to move up by subheader height (h-8) */
+  }
+}
+
+@keyframes compensate-content-margin {
+  0% {
+    margin-top: 0;
+  }
+  100% {
+    margin-top: 2rem; /* +32px to compensate for header movement */
+  }
+}
+
