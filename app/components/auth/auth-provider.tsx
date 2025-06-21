@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import { useFetcher, useRouteLoaderData } from '@remix-run/react';
-import type { User } from '~/proto/api';
+import type { User } from '@suhaibinator/sunnah-v3-ts-proto/lib/api';
 
 // Auth context state interface
 interface AuthState {

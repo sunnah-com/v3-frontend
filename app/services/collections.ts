@@ -1,6 +1,6 @@
 import type { Collection } from "~/types";
 import { businessApi } from "~/lib/api-client";
-import { Language } from "~/proto/api";
+import { Language } from "@suhaibinator/sunnah-v3-ts-proto/lib/api";
 import { mapCollectionToFrontend } from "~/lib/utils";
 
 // Mock collections data (temporary until protobuf implementation)

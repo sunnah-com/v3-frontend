@@ -1,8 +1,14 @@
 import { useEffect } from "react";
 import { Navbar } from "./navbar";
 import { Footer } from "./footer";
+import type { Theme } from "~/lib/theme.server";
 
-export function LayoutClient({ children }: { children: React.ReactNode }) {
+interface LayoutClientProps {
+  children: React.ReactNode;
+  theme: Theme;
+}
+
+export function LayoutClient({ children, theme }: LayoutClientProps) {
   // Fix for scroll position when clicking anchor links
   useEffect(() => {
     // Function to handle anchor link clicks
@@ -81,7 +87,7 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
+      <Navbar theme={theme} />
       <main className="flex-grow scroll-compensated-content">
         {children}
       </main>

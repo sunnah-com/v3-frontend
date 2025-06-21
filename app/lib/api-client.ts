@@ -6,12 +6,20 @@
 
 import { getCookie } from './cookies';
 import { captureError } from './telemetry';
-import { BinaryReader } from '@bufbuild/protobuf/wire';
+import { BinaryReader, BinaryWriter } from '@bufbuild/protobuf/wire';
+import { fromBinary } from '@bufbuild/protobuf';
 import type { HeadersFunction as Headers } from '@remix-run/node'; // Import type for headers
 
-// Import Protobuf message types and encoders/decoders
-import { User, UserSettings, Language } from "../proto/api";
-import {
+// Import Protobuf message types and encoders/decoders from npm package source files
+
+// Import types and implementations from compiled JavaScript files
+import type {
+  User,
+  UserSettings,
+  Language,
+} from '@suhaibinator/sunnah-v3-ts-proto/lib/api';
+
+import type {
   EmailRegistrationRequest,
   EmailRegistrationResponse,
   EmailAuthRequest,
@@ -25,8 +33,9 @@ import {
   OAuthCodeRequest,
   OAuthTokenResponse,
   AuthProvider,
-} from "~/proto/auth";
-import {
+} from '@suhaibinator/sunnah-v3-ts-proto/lib/auth';
+
+import type {
   GetAllLanguagesRequest,
   GetAllLanguagesResponse,
   GetAllCollectionsRequest,
@@ -35,13 +44,62 @@ import {
   GetAllReferenceTypesResponse,
   GetCollectionByIdRequest,
   GetCollectionByIdResponse,
+  GetCollectionByNameRequest,
+  GetCollectionByNameResponse,
   GetBookWithDetailedChaptersRequest,
   GetBookWithDetailedChaptersResponse,
+  GetBookGroupsByCollectionIdRequest,
+  GetBookGroupsByCollectionIdResponse,
   GetHadithRequest,
   GetHadithResponse,
   HadithReferenceIdentifier,
-} from "~/proto/business_api";
-import { MessageFns } from "~/proto/business_models"; // Import MessageFns for type safety
+} from '@suhaibinator/sunnah-v3-ts-proto/lib/business_api';
+
+// Import the actual implementations with encode/decode methods
+import {
+  User as UserImpl,
+  UserSettings as UserSettingsImpl,
+  Language as LanguageEnum,
+} from '@suhaibinator/sunnah-v3-ts-proto/lib/api';
+
+import {
+  EmailRegistrationRequest as EmailRegistrationRequestImpl,
+  EmailRegistrationResponse as EmailRegistrationResponseImpl,
+  EmailAuthRequest as EmailAuthRequestImpl,
+  EmailAuthResponse as EmailAuthResponseImpl,
+  PasswordResetRequest as PasswordResetRequestImpl,
+  PasswordResetResponse as PasswordResetResponseImpl,
+  PasswordChangeRequest as PasswordChangeRequestImpl,
+  PasswordChangeResponse as PasswordChangeResponseImpl,
+  EmailVerificationRequest as EmailVerificationRequestImpl,
+  PasswordResetCompleteRequest as PasswordResetCompleteRequestImpl,
+  OAuthCodeRequest as OAuthCodeRequestImpl,
+  OAuthTokenResponse as OAuthTokenResponseImpl,
+  AuthProvider as AuthProviderEnum,
+} from '@suhaibinator/sunnah-v3-ts-proto/lib/auth';
+
+import {
+  GetAllLanguagesRequest as GetAllLanguagesRequestImpl,
+  GetAllLanguagesResponse as GetAllLanguagesResponseImpl,
+  GetAllCollectionsRequest as GetAllCollectionsRequestImpl,
+  GetAllCollectionsResponse as GetAllCollectionsResponseImpl,
+  GetAllReferenceTypesRequest as GetAllReferenceTypesRequestImpl,
+  GetAllReferenceTypesResponse as GetAllReferenceTypesResponseImpl,
+  GetCollectionByIdRequest as GetCollectionByIdRequestImpl,
+  GetCollectionByIdResponse as GetCollectionByIdResponseImpl,
+  GetCollectionByNameRequest as GetCollectionByNameRequestImpl,
+  GetCollectionByNameResponse as GetCollectionByNameResponseImpl,
+  GetBookWithDetailedChaptersRequest as GetBookWithDetailedChaptersRequestImpl,
+  GetBookWithDetailedChaptersResponse as GetBookWithDetailedChaptersResponseImpl,
+  GetHadithRequest as GetHadithRequestImpl,
+  GetHadithResponse as GetHadithResponseImpl,
+  HadithReferenceIdentifier as HadithReferenceIdentifierImpl,
+  GetBookGroupsByCollectionIdRequest as GetBookGroupsByCollectionIdRequestImpl,
+  GetBookGroupsByCollectionIdResponse as GetBookGroupsByCollectionIdResponseImpl,
+} from '@suhaibinator/sunnah-v3-ts-proto/lib/business_api';
+
+// Re-export Language enum for use in other files
+export { LanguageEnum as Language };
 
 // Environment variables for API URLs
 const NEXT_PUBLIC_API_URL =
@@ -57,6 +115,7 @@ const internalApiUrl =
     : NEXT_PUBLIC_API_URL); // Final fallback to public URL if others aren't set (shouldn't happen in prod/ci)
 
 const INTERNAL_API_URL = internalApiUrl;
+
 
 const AUTH_TOKEN_COOKIE = "auth_token";
 
@@ -211,6 +270,28 @@ async function request(
   }
 }
 
+// Import MessageFns type from the package
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+type DeepPartial<T> = T extends Builtin ? T : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>> : T extends {} ? {
+    [K in keyof T]?: DeepPartial<T[K]>;
+} : Partial<T>;
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+type Exact<P, I extends P> = P extends Builtin ? P : P & {
+    [K in keyof P]: Exact<P[K], I[K]>;
+} & {
+    [K in Exclude<keyof I, KeysOfUnion<P>>]: never;
+};
+
+// Define MessageFns interface to match ts-proto's generated code exactly
+interface MessageFns<T> {
+  encode(message: T, writer?: import('@bufbuild/protobuf/wire').BinaryWriter): import('@bufbuild/protobuf/wire').BinaryWriter;
+  decode(input: BinaryReader | Uint8Array, length?: number): T;
+  fromJSON(object: any): T;
+  toJSON(message: T): unknown;
+  create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
+  fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
+}
+
 /**
  * Helper function for making requests with Protobuf serialization/deserialization.
  */
@@ -222,13 +303,23 @@ async function requestProto<TReq, TRes>(
   responseDecoder: MessageFns<TRes>,
   options: Omit<RequestOptions, 'body'> = {}, // Includes requiresAuth and serverHeaders now
 ): Promise<TRes> {
-  const encodedData = requestEncoder.encode(requestData).finish();
+  // Type assertion to handle protobuf version conflicts between local package and frontend
+  const encodedData = (requestEncoder as any).encode(requestData).finish();
   const response = await request(method, endpoint, {
     ...options, // Pass requiresAuth and serverHeaders down
     body: encodedData,
   });
+  
   const arrayBuffer = await response.arrayBuffer();
-  return responseDecoder.decode(new BinaryReader(new Uint8Array(arrayBuffer)));
+  
+  // Ensure we have a valid ArrayBuffer
+  if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+    throw new Error(`Empty or invalid response body from ${endpoint}`);
+  }
+  
+  // Use the frontend's BinaryReader for decoding
+  const reader = new BinaryReader(new Uint8Array(arrayBuffer));
+  return (responseDecoder as any).decode(reader);
 }
 
 /**
@@ -240,13 +331,13 @@ export const authApi = {
     password: string,
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<EmailRegistrationResponse> {
-    const requestData = EmailRegistrationRequest.create({ email, password });
+    const requestData = EmailRegistrationRequestImpl.create({ email, password });
     return requestProto(
       'POST',
       '/auth/email/create',
       requestData,
-      EmailRegistrationRequest,
-      EmailRegistrationResponse,
+      EmailRegistrationRequestImpl as any,
+      EmailRegistrationResponseImpl as any,
       { serverHeaders }, // Pass headers
     );
   },
@@ -256,13 +347,13 @@ export const authApi = {
     password: string,
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<EmailAuthResponse> {
-    const requestData = EmailAuthRequest.create({ email, password });
+    const requestData = EmailAuthRequestImpl.create({ email, password });
     return requestProto(
       'POST',
       '/auth/email/login',
       requestData,
-      EmailAuthRequest,
-      EmailAuthResponse,
+      EmailAuthRequestImpl as any,
+      EmailAuthResponseImpl as any,
       { serverHeaders }, // Pass headers
     );
   },
@@ -272,7 +363,7 @@ export const authApi = {
     newPassword: string,
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<PasswordChangeResponse> {
-    const requestData = PasswordChangeRequest.create({
+    const requestData = PasswordChangeRequestImpl.create({
       oldPassword,
       newPassword,
     });
@@ -280,8 +371,8 @@ export const authApi = {
       'POST',
       '/auth/email/change-password',
       requestData,
-      PasswordChangeRequest,
-      PasswordChangeResponse,
+      PasswordChangeRequestImpl as any,
+      PasswordChangeResponseImpl as any,
       { requiresAuth: true, serverHeaders }, // Requires authentication, pass headers
     );
   },
@@ -290,13 +381,13 @@ export const authApi = {
     email: string,
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<PasswordResetResponse> {
-    const requestData = PasswordResetRequest.create({ email });
+    const requestData = PasswordResetRequestImpl.create({ email });
     return requestProto(
       'POST',
       '/auth/email/reset-password',
       requestData,
-      PasswordResetRequest,
-      PasswordResetResponse,
+      PasswordResetRequestImpl as any,
+      PasswordResetResponseImpl as any,
       { serverHeaders }, // Pass headers
     );
   },
@@ -305,13 +396,13 @@ export const authApi = {
     verificationCode: string,
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<EmailAuthResponse> {
-    const requestData = EmailVerificationRequest.create({ verificationCode });
+    const requestData = EmailVerificationRequestImpl.create({ verificationCode });
     return requestProto(
       'POST',
       '/auth/email/complete-verification',
       requestData,
-      EmailVerificationRequest,
-      EmailAuthResponse, // Endpoint returns EmailAuthResponse on success
+      EmailVerificationRequestImpl as any,
+      EmailAuthResponseImpl as any, // Endpoint returns EmailAuthResponse on success
       { serverHeaders }, // Pass headers
     );
   },
@@ -321,7 +412,7 @@ export const authApi = {
     newPassword: string,
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<EmailAuthResponse> {
-    const requestData = PasswordResetCompleteRequest.create({
+    const requestData = PasswordResetCompleteRequestImpl.create({
       verificationCode,
       newPassword,
     });
@@ -329,8 +420,8 @@ export const authApi = {
       'POST',
       '/auth/email/complete-reset',
       requestData,
-      PasswordResetCompleteRequest,
-      EmailAuthResponse, // Endpoint returns EmailAuthResponse on success
+      PasswordResetCompleteRequestImpl as any,
+      EmailAuthResponseImpl as any, // Endpoint returns EmailAuthResponse on success
       { serverHeaders }, // Pass headers
     );
   },
@@ -341,7 +432,7 @@ export const authApi = {
     provider: AuthProvider,
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<OAuthTokenResponse> {
-    const requestData = OAuthCodeRequest.create({ code, provider });
+    const requestData = OAuthCodeRequestImpl.create({ code, provider });
     // Assuming an endpoint like '/auth/oauth/callback' or similar based on docs/authentication.md
     // The exact endpoint might need confirmation if it's different from a standard callback handler.
     // Let's assume '/auth/oauth/token' for now if it exchanges code for token directly via API.
@@ -352,8 +443,8 @@ export const authApi = {
       'POST',
       '/auth/oauth/token', // Placeholder: Verify actual endpoint if direct API call exists
       requestData,
-      OAuthCodeRequest,
-      OAuthTokenResponse,
+      OAuthCodeRequestImpl as any,
+      OAuthTokenResponseImpl as any,
       { serverHeaders }, // Pass headers
     );
   },
@@ -372,7 +463,8 @@ export const userApi = {
       serverHeaders, // Pass headers
     });
     const arrayBuffer = await response.arrayBuffer();
-    return User.decode(new BinaryReader(new Uint8Array(arrayBuffer)));
+    const reader = new BinaryReader(new Uint8Array(arrayBuffer));
+    return (UserImpl as any).decode(reader);
   },
 };
 
@@ -389,7 +481,8 @@ export const userSettingsApi = {
       serverHeaders, // Pass headers
     });
     const arrayBuffer = await response.arrayBuffer();
-    return UserSettings.decode(new BinaryReader(new Uint8Array(arrayBuffer)));
+    const reader = new BinaryReader(new Uint8Array(arrayBuffer));
+    return (UserSettingsImpl as any).decode(reader);
   },
 
   async updateUserSettings(
@@ -397,7 +490,7 @@ export const userSettingsApi = {
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<UserSettings> {
     // Backend ignores id and userId in request, only uses fields like darkMode, notifications, language
-    const requestData = UserSettings.create({
+    const requestData = UserSettingsImpl.create({
       id: '', // Ignored by backend
       userId: '', // Ignored by backend
       ...settings,
@@ -406,8 +499,8 @@ export const userSettingsApi = {
       'PUT',
       '/api/user/settings',
       requestData,
-      UserSettings,
-      UserSettings,
+      UserSettingsImpl as any,
+      UserSettingsImpl as any,
       { requiresAuth: true, serverHeaders }, // Requires authentication, pass headers
     );
   },
@@ -420,13 +513,13 @@ export const businessApi = {
   async getAllLanguages(
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<GetAllLanguagesResponse> {
-    const requestData = GetAllLanguagesRequest.create({});
+    const requestData = GetAllLanguagesRequestImpl.create({});
     return requestProto(
       'POST',
       '/api/languages',
       requestData,
-      GetAllLanguagesRequest,
-      GetAllLanguagesResponse,
+      GetAllLanguagesRequestImpl as any,
+      GetAllLanguagesResponseImpl as any,
       { serverHeaders }, // Pass headers
     );
   },
@@ -435,13 +528,13 @@ export const businessApi = {
     language: Language,
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<GetAllCollectionsResponse> {
-    const requestData = GetAllCollectionsRequest.create({ language });
+    const requestData = GetAllCollectionsRequestImpl.create({ language });
     return requestProto(
       'POST',
       '/api/collections',
       requestData,
-      GetAllCollectionsRequest,
-      GetAllCollectionsResponse,
+      GetAllCollectionsRequestImpl as any,
+      GetAllCollectionsResponseImpl as any,
       { serverHeaders }, // Pass headers
     );
   },
@@ -449,13 +542,13 @@ export const businessApi = {
   async getAllReferenceTypes(
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<GetAllReferenceTypesResponse> {
-    const requestData = GetAllReferenceTypesRequest.create({});
+    const requestData = GetAllReferenceTypesRequestImpl.create({});
     return requestProto(
       'POST',
       '/api/reference-types',
       requestData,
-      GetAllReferenceTypesRequest,
-      GetAllReferenceTypesResponse,
+      GetAllReferenceTypesRequestImpl as any,
+      GetAllReferenceTypesResponseImpl as any,
       { serverHeaders }, // Pass headers
     );
   },
@@ -465,7 +558,7 @@ export const businessApi = {
     language: Language,
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<GetCollectionByIdResponse> {
-    const requestData = GetCollectionByIdRequest.create({
+    const requestData = GetCollectionByIdRequestImpl.create({
       collectionId,
       language,
     });
@@ -473,10 +566,44 @@ export const businessApi = {
       'POST',
       '/api/collections/get-by-id',
       requestData,
-      GetCollectionByIdRequest,
-      GetCollectionByIdResponse,
+      GetCollectionByIdRequestImpl as any,
+      GetCollectionByIdResponseImpl as any,
       { serverHeaders }, // Pass headers
     );
+  },
+
+  async getCollectionByName(
+    collectionName: string,
+    language: Language,
+    serverHeaders?: Headers | null, // Add optional serverHeaders
+  ): Promise<GetCollectionByNameResponse> {
+    const requestData = GetCollectionByNameRequestImpl.create({
+      collectionName,
+      language,
+    });
+    return requestProto(
+      'POST',
+      '/api/collections/get-by-name',
+      requestData,
+      GetCollectionByNameRequestImpl as any,
+      GetCollectionByNameResponseImpl as any,
+      { serverHeaders }, // Pass headers
+    );
+  },
+
+  // Helper method that tries to get collection by ID (if numeric) or by name (if string)
+  async getCollection(
+    identifier: string,
+    language: Language,
+    serverHeaders?: Headers | null,
+  ): Promise<GetCollectionByIdResponse | GetCollectionByNameResponse> {
+    // If the identifier is numeric, treat it as an ID
+    if (/^\d+$/.test(identifier)) {
+      return this.getCollectionById(identifier, language, serverHeaders);
+    } else {
+      // Otherwise, treat it as a name
+      return this.getCollectionByName(identifier, language, serverHeaders);
+    }
   },
 
   async getBookWithDetailedChapters(
@@ -484,7 +611,7 @@ export const businessApi = {
     language: Language,
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<GetBookWithDetailedChaptersResponse> {
-    const requestData = GetBookWithDetailedChaptersRequest.create({
+    const requestData = GetBookWithDetailedChaptersRequestImpl.create({
       bookId,
       language,
     });
@@ -492,8 +619,8 @@ export const businessApi = {
       'POST',
       '/api/books/get-detailed',
       requestData,
-      GetBookWithDetailedChaptersRequest,
-      GetBookWithDetailedChaptersResponse,
+      GetBookWithDetailedChaptersRequestImpl as any,
+      GetBookWithDetailedChaptersResponseImpl as any,
       { serverHeaders }, // Pass headers
     );
   },
@@ -503,35 +630,54 @@ export const businessApi = {
     language: Language,
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<GetHadithResponse> {
-    const requestData = GetHadithRequest.create({ hadithId, language });
+    const requestData = GetHadithRequestImpl.create({ hadithId, language });
     return requestProto(
       'POST',
       '/api/hadiths/get',
       requestData,
-      GetHadithRequest,
-      GetHadithResponse,
+      GetHadithRequestImpl as any,
+      GetHadithResponseImpl as any,
       { serverHeaders }, // Pass headers
     );
   },
 
   async getHadithByReference(
-    referenceTypeId: string,
+    referenceTypeId: number,
     referenceValue: string,
     language: Language,
     serverHeaders?: Headers | null, // Add optional serverHeaders
   ): Promise<GetHadithResponse> {
-    const reference = HadithReferenceIdentifier.create({
+    const reference = HadithReferenceIdentifierImpl.create({
       referenceTypeId,
       referenceValue,
     });
-    const requestData = GetHadithRequest.create({ reference, language });
+    const requestData = GetHadithRequestImpl.create({ reference, language });
     return requestProto(
       'POST',
       '/api/hadiths/get',
       requestData,
-      GetHadithRequest,
-      GetHadithResponse,
+      GetHadithRequestImpl as any,
+      GetHadithResponseImpl as any,
       { serverHeaders }, // Pass headers
+    );
+  },
+
+  async getBookGroupsByCollectionId(
+    collectionId: string,
+    language: Language,
+    serverHeaders?: Headers | null,
+  ): Promise<GetBookGroupsByCollectionIdResponse> {
+    const requestData = GetBookGroupsByCollectionIdRequestImpl.create({
+      collectionId,
+      language,
+    });
+    return requestProto(
+      'POST',
+      '/api/collections/get-book-groups',
+      requestData,
+      GetBookGroupsByCollectionIdRequestImpl as any,
+      GetBookGroupsByCollectionIdResponseImpl as any,
+      { serverHeaders },
     );
   },
 };

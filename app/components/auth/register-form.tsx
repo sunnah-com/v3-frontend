@@ -13,7 +13,7 @@ import {
 } from '../ui/card';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import { OAuthLoginButtons } from './oauth-login-buttons';
-import { AuthProvider, authProviderToJSON } from '~/proto/auth';
+import { AuthProvider, authProviderToJSON } from '@suhaibinator/sunnah-v3-ts-proto/lib/auth';
 import { authConfig } from '~/config/auth-config';
 
 interface RegisterFormProps {

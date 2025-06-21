@@ -1,5 +1,5 @@
 import { userApi, authApi, userSettingsApi } from "~/lib/api-client";
-import type { User, UserSettings } from "~/proto/api";
+import type { User, UserSettings } from "@suhaibinator/sunnah-v3-ts-proto/lib/api";
 import type { AuthSession } from "~/lib/auth.server";
 
 /**

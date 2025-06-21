@@ -12,7 +12,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@bufbuild/protobuf": "^2.4.0",
+    "@bufbuild/protobuf": "^2.5.1",
     "@grafana/faro-web-sdk": "^1.15.0",
     "@grafana/faro-web-tracing": "^1.15.0",
     "@hookform/resolvers": "^5.0.1",
@@ -46,7 +46,7 @@
     "@remix-run/node": "^2.16.6",
     "@remix-run/react": "^2.16.6",
     "@remix-run/serve": "^2.16.6",
-    "@suhaibinator/sunnah-v3-ts-proto": "^0.0.5",
+    "@suhaibinator/sunnah-v3-ts-proto": "^0.0.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

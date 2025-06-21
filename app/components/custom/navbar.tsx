@@ -4,8 +4,14 @@ import { Menu, X } from "lucide-react";
 import { Logo } from "../logo";
 import { SearchBar } from "../search-bar";
 import { UserMenu } from "../auth/user-menu";
+import { ThemeToggle } from "../theme-toggle";
+import type { Theme } from "~/lib/theme.server";
 
-export function Navbar() {
+interface NavbarProps {
+  theme: Theme;
+}
+
+export function Navbar({ theme }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const pathname = location.pathname;
@@ -98,6 +104,9 @@ export function Navbar() {
             About
           </Link>
 
+          {/* Theme toggle */}
+          <ThemeToggle theme={theme} />
+
           {/* User menu */}
           <UserMenu />
         </nav>
@@ -128,8 +137,12 @@ export function Navbar() {
                 About
               </Link>
 
-              {/* Mobile user menu */}
+              {/* Mobile theme toggle and user menu */}
               <div className="pt-2 border-t">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Theme</span>
+                  <ThemeToggle theme={theme} />
+                </div>
                 <UserMenu />
               </div>
             </div>

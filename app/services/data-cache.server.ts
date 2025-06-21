@@ -1,6 +1,6 @@
 import { businessApi } from "~/lib/api-client";
-import { Language } from "~/proto/api";
-import type { Collection } from "~/types";
+import { Language } from "@suhaibinator/sunnah-v3-ts-proto/lib/api";
+import type { Collection, Book } from "~/types";
 import { apiDetailedCollectionToCollection, apiSimpleBookToBook } from "~/types";
 
 // In-memory cache for development
@@ -83,7 +83,7 @@ export async function getCachedCollectionWithBooks(collectionId: string) {
 
   try {
     console.log(`🔍 Fetching collection ${collectionId} from API...`);
-    const response = await businessApi.getCollectionById(collectionId, Language.LANGUAGE_ENGLISH);
+    const response = await businessApi.getCollection(collectionId, Language.LANGUAGE_ENGLISH);
     
     if (!response.collection) {
       console.log(`❌ No collection found for ID ${collectionId}`);
@@ -91,9 +91,20 @@ export async function getCachedCollectionWithBooks(collectionId: string) {
     }
 
     const collection = apiDetailedCollectionToCollection(response.collection);
-    const books = response.collection.books?.map((book: any) => 
-      apiSimpleBookToBook(book, collectionId)
-    ) || [];
+    
+    // Fetch books using the new API endpoint
+    const bookGroupsResponse = await businessApi.getBookGroupsByCollectionId(
+      response.collection.id,
+      Language.LANGUAGE_ENGLISH
+    );
+    
+    // Extract books from all book groups
+    const books: Book[] = [];
+    bookGroupsResponse.bookGroups?.forEach(bookGroup => {
+      bookGroup.books?.forEach(book => {
+        books.push(apiSimpleBookToBook(book, collectionId));
+      });
+    });
 
     console.log(`✅ Fetched collection ${collectionId}: ${collection.name}, books: ${books.length}`);
     
@@ -134,7 +145,7 @@ export async function getCachedCollectionsWithBooks() {
           const details = await getCachedCollectionWithBooks(collection.id);
           return {
             ...collection,
-            books: details?.books?.map(book => ({
+            books: details?.books?.map((book: any) => ({
               id: book.id,
               name: book.name,
               nameArabic: book.nameArabic,

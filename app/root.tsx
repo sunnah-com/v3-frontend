@@ -9,13 +9,14 @@ import {
   isRouteErrorResponse,
   Link,
 } from "@remix-run/react";
-import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import type { LinksFunction, LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { getEnv, getPublicEnv } from "~/lib/environment.server";
 import { LayoutClient } from "~/components/custom/layout-client";
 import { AuthProvider } from "~/components/auth/auth-provider";
 import { getCurrentUser } from "~/lib/auth.server";
-import type { User } from "~/proto/api";
+import type { User } from "@suhaibinator/sunnah-v3-ts-proto/lib/api";
+import { getThemeWithDefault, setTheme, type Theme } from "~/lib/theme.server";
 
 import "./tailwind.css";
 
@@ -32,16 +33,39 @@ export const links: LinksFunction = () => [
   },
 ];
 
-// Make the environment variables and user data available to the client
+// Make the environment variables, user data, and theme available to the client
 export async function loader({ request }: LoaderFunctionArgs) {
   // Get current user if authenticated
   const user = await getCurrentUser(request);
+  
+  // Get theme preference
+  const theme = await getThemeWithDefault(request);
   
   // Only expose public env vars to the client
   return json({
     ENV: getPublicEnv(),
     user,
+    theme,
   });
+}
+
+// Handle theme changes
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const theme = formData.get("theme");
+  
+  if (theme === "light" || theme === "dark") {
+    return json(
+      { theme },
+      { 
+        headers: { 
+          "Set-Cookie": await setTheme(theme) 
+        } 
+      }
+    );
+  }
+  
+  return json({ theme: null });
 }
 
 export const meta: MetaFunction = () => {
@@ -51,9 +75,22 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export function Layout({ children }: { children: React.ReactNode }) {
+interface LayoutProps {
+  children: React.ReactNode;
+  theme?: Theme;
+}
+
+export function Layout({ children, theme = "light" }: LayoutProps) {
+  // Try to get theme from loader data, but don't fail if not available (e.g., in error boundary)
+  try {
+    const data = useLoaderData<typeof loader>();
+    theme = data?.theme || theme;
+  } catch {
+    // If useLoaderData fails (e.g., in error boundary), use default theme
+  }
+  
   return (
-    <html lang="en" className="h-full scroll-smooth antialiased">
+    <html lang="en" className={`${theme} h-full scroll-smooth antialiased`}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -74,7 +111,7 @@ export default function App() {
   
   return (
     <AuthProvider initialUser={data.user}>
-      <LayoutClient>
+      <LayoutClient theme={data.theme}>
         <Outlet />
         {/* Add environment variables to window object */}
         {data?.ENV && (

@@ -1,6 +1,6 @@
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { AuthProvider } from '~/proto/auth';
+import { AuthProvider } from '@suhaibinator/sunnah-v3-ts-proto/lib/auth';
 import { authConfig } from '~/config/auth-config';
 
 // Import icons from Lucide

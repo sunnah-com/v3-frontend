@@ -1,7 +1,7 @@
 import { type MetaFunction, type LoaderFunctionArgs, json } from "@remix-run/node";
 import { useLoaderData, Link } from "@remix-run/react";
 import { businessApi } from "~/lib/api-client";
-import { Language } from "~/proto/api";
+import { Language } from "@suhaibinator/sunnah-v3-ts-proto/lib/api";
 import {
   Collection, 
   Book, 

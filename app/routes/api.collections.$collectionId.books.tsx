@@ -16,7 +16,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     }
 
     // Return only the books data formatted for the sidebar
-    const books = result.books.map(book => ({
+    const books = result.books.map((book: any) => ({
       id: book.id,
       name: book.name,
       nameArabic: book.nameArabic,
